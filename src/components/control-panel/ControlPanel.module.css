@@ -1,0 +1,52 @@
+.control_panel {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  background-color: white;
+  width: 280px;
+  height: 280px;
+  z-index: 100;
+  padding: 20px;
+  color: black;
+  text-align: center;
+  border-top-left-radius: 10px;
+}
+
+.control_panel h2 {
+  margin: 0 0 10px 0;
+}
+
+.form {
+  width: 100%;
+  height: 100%;
+  max-width: 280px;
+  max-height: 220px;
+}
+
+.group_button {
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 440px) {
+  .control_panel {
+    position: fixed;
+    bottom: 0;
+    background-color: white;
+    height: 180px;
+    z-index: 100;
+    padding: 20px 0;
+    color: black;
+    text-align: center;
+    width: 100vw;
+    border-radius: 0;
+  }
+
+  .form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+    min-width: 100vw;
+    max-height: 140px;
+  }
+}
