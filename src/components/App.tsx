@@ -56,7 +56,7 @@ function App() {
         setFigure={setFigure}
       />
       <Canvas>
-        <OrbitControls />
+        <OrbitControls enableRotate={false} />
         <CustomAxis
           state={pointState}
           setStart={setStart}
