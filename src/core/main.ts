@@ -13,7 +13,7 @@ export const calculateGipotenuze = (point1: Vector3, point2: Vector3) => {
   return Math.sqrt(Math.pow(adjacentCatheter, 2) + Math.pow(oppositeCatheter, 2))
 }
 
-export const calculateFreeMember = (tangens: number, point: Vector3) => point.y - tangens * point.x
+export const calculateFreeMember = (teta: number, point: Vector3) => point.y - teta * point.x
 
 export const calculateHalfCord = (point1: Vector3, point2: Vector3) =>
   new Vector3((point1.x + point2.x) / 2, point1.y + point2.y / 2)
@@ -23,6 +23,7 @@ export const lineEquation = (point1: Vector3, point2: Vector3, x: number) => {
   const y1 = point1.y
   const x2 = point2.x
   const y2 = point2.y
+
   return ((y2 - y1) * (x - x1)) / (x2 - x1) + y1
 }
 
@@ -39,13 +40,41 @@ export const vectorToMatrix = (points: Vector3[]) => {
 export const matrixToVector = (matrix: Matrix) =>
   matrix.getData().map(row => new Vector3(row[0], row[1], 0.01))
 
+const rotateMatrix = (data: Matrix, teta: number) => {
+  const rotate = new Matrix(3, 3)
+  rotate.set(0, 0, Math.cos(teta))
+  rotate.set(0, 1, -Math.sin(teta))
+  rotate.set(0, 2, 0)
+  rotate.set(1, 0, Math.sin(teta))
+  rotate.set(1, 1, Math.cos(teta))
+  rotate.set(1, 2, 0)
+  rotate.set(2, 0, 0)
+  rotate.set(2, 1, 0)
+  rotate.set(2, 2, 1)
+  return data.multiply(rotate)
+}
+
+const moveMatrix = (data: Matrix, distance: number) => {
+  const moveToMatrix = new Matrix(3, 3)
+  moveToMatrix.set(0, 0, 1)
+  moveToMatrix.set(0, 1, 0)
+  moveToMatrix.set(0, 2, 0)
+  moveToMatrix.set(1, 0, 0)
+  moveToMatrix.set(1, 1, 1)
+  moveToMatrix.set(1, 2, 0)
+  moveToMatrix.set(2, 0, 0)
+  moveToMatrix.set(2, 1, distance)
+  moveToMatrix.set(2, 2, 1)
+  return data.multiply(moveToMatrix)
+}
+
 export const calculateReflect: (
   startPoint: Vector3,
   endPoint: Vector3,
   figure: Vector3[]
 ) => Vector3[] = (startPoint, endPoint, figure) => {
   let figureMatrix = vectorToMatrix(figure)
-  const tangens = Math.atan(calculateTang(startPoint, endPoint))
+  const teta = Math.atan(calculateTang(startPoint, endPoint))
 
   let lineMatrix = new Matrix(2, 3)
   lineMatrix.set(0, 0, startPoint.x)
@@ -56,50 +85,6 @@ export const calculateReflect: (
   lineMatrix.set(1, 2, 1)
 
   const ys = lineEquation(startPoint, endPoint, 0)
-
-  const moveToMatrix = new Matrix(3, 3)
-  moveToMatrix.set(0, 0, 1)
-  moveToMatrix.set(0, 1, 0)
-  moveToMatrix.set(0, 2, 0)
-  moveToMatrix.set(1, 0, 0)
-  moveToMatrix.set(1, 1, 1)
-  moveToMatrix.set(1, 2, 0)
-  moveToMatrix.set(2, 0, 0)
-  moveToMatrix.set(2, 1, -ys)
-  moveToMatrix.set(2, 2, 1)
-
-  const moveBackMatrix = new Matrix(3, 3)
-  moveBackMatrix.set(0, 0, 1)
-  moveBackMatrix.set(0, 1, 0)
-  moveBackMatrix.set(0, 2, 0)
-  moveBackMatrix.set(1, 0, 0)
-  moveBackMatrix.set(1, 1, 1)
-  moveBackMatrix.set(1, 2, 0)
-  moveBackMatrix.set(2, 0, 0)
-  moveBackMatrix.set(2, 1, ys)
-  moveBackMatrix.set(2, 2, 1)
-
-  const rotateMatrix = new Matrix(3, 3)
-  rotateMatrix.set(0, 0, Math.cos(tangens))
-  rotateMatrix.set(0, 1, -Math.sin(tangens))
-  rotateMatrix.set(0, 2, 0)
-  rotateMatrix.set(1, 0, Math.sin(tangens))
-  rotateMatrix.set(1, 1, Math.cos(tangens))
-  rotateMatrix.set(1, 2, 0)
-  rotateMatrix.set(2, 0, 0)
-  rotateMatrix.set(2, 1, 0)
-  rotateMatrix.set(2, 2, 1)
-
-  const rotateBackMatrix = new Matrix(3, 3)
-  rotateBackMatrix.set(0, 0, Math.cos(tangens))
-  rotateBackMatrix.set(0, 1, Math.sin(tangens))
-  rotateBackMatrix.set(0, 2, 0)
-  rotateBackMatrix.set(1, 0, -Math.sin(tangens))
-  rotateBackMatrix.set(1, 1, Math.cos(tangens))
-  rotateBackMatrix.set(1, 2, 0)
-  rotateBackMatrix.set(2, 0, 0)
-  rotateBackMatrix.set(2, 1, 0)
-  rotateBackMatrix.set(2, 2, 1)
 
   const reflectMatrix = new Matrix(3, 3)
   reflectMatrix.set(0, 0, 1)
@@ -112,15 +97,35 @@ export const calculateReflect: (
   reflectMatrix.set(2, 1, 0)
   reflectMatrix.set(2, 2, 1)
 
-  figureMatrix = figureMatrix.multiply(moveToMatrix)
+  if (ys === Infinity || ys === -Infinity) {
+    figureMatrix = rotateMatrix(figureMatrix, Math.PI / 2)
+    lineMatrix = rotateMatrix(lineMatrix, Math.PI / 2)
+    console.log(lineMatrix)
 
-  figureMatrix = figureMatrix.multiply(rotateMatrix)
+    figureMatrix = moveMatrix(figureMatrix, startPoint.x)
+    lineMatrix = moveMatrix(lineMatrix, startPoint.x)
+    console.log(lineMatrix)
 
-  figureMatrix = figureMatrix.multiply(reflectMatrix)
+    figureMatrix = figureMatrix.multiply(reflectMatrix)
 
-  figureMatrix = figureMatrix.multiply(rotateBackMatrix)
+    figureMatrix = moveMatrix(figureMatrix, -startPoint.x)
+    lineMatrix = moveMatrix(lineMatrix, -startPoint.x)
+    console.log(lineMatrix)
 
-  figureMatrix = figureMatrix.multiply(moveBackMatrix)
+    figureMatrix = rotateMatrix(figureMatrix, -Math.PI / 2)
+    lineMatrix = rotateMatrix(lineMatrix, -Math.PI / 2)
+    console.log(lineMatrix)
+  } else {
+    figureMatrix = moveMatrix(figureMatrix, -ys)
+
+    figureMatrix = rotateMatrix(figureMatrix, teta)
+
+    figureMatrix = figureMatrix.multiply(reflectMatrix)
+
+    figureMatrix = rotateMatrix(figureMatrix, 2 * Math.PI - teta)
+
+    figureMatrix = moveMatrix(figureMatrix, ys)
+  }
 
   return matrixToVector(figureMatrix)
 }

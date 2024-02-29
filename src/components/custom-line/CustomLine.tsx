@@ -10,6 +10,7 @@ export type CustomLineProps = {
 
 const CustomLine: FC<CustomLineProps> = ({ point1, point2 }) => {
   const equation: (x: number) => number = x => lineEquation(point1, point2, x)
+
   const plotLine = (x0: number, y0: number, x1: number, y1: number): Vector3[] => {
     const dx = Math.abs(x1 - x0)
     const dy = Math.abs(y1 - y0)
@@ -20,25 +21,46 @@ const CustomLine: FC<CustomLineProps> = ({ point1, point2 }) => {
     let x = x0
     let y = y0
     const points: Vector3[] = []
-    while (true) {
-      points.push(new Vector3(x, y, 0))
-      const isXClose = Math.abs(x - x1) < accuracy
-      const isYClose = Math.abs(y - y1) < accuracy
-      if (isXClose && isYClose) break
-      const e2 = 2 * err
-      if (e2 > -dy) {
-        err -= dy
-        x += sx
-      }
-      if (e2 < dx) {
-        err += dx
+
+    if (dx === 0) {
+      while (true) {
+        points.push(new Vector3(x, y, 0))
+        if (Math.abs(y - y1) < accuracy) break
         y += sy
       }
+    } else {
+      while (true) {
+        points.push(new Vector3(x, y, 0))
+        const isXClose = Math.abs(x - x1) < accuracy
+        const isYClose = Math.abs(y - y1) < accuracy
+        if (isXClose && isYClose) break
+        const e2 = 2 * err
+        if (e2 > -dy) {
+          err -= dy
+          x += sx
+        }
+        if (e2 < dx) {
+          err += dx
+          y += sy
+        }
+      }
     }
+
     return points
   }
 
-  const points = plotLine(-20, equation(-20), 20, equation(20))
+  const startPoint = equation(-20)
+
+  const endPoint = equation(20)
+
+  const isInfinity = equation(-20) === Infinity || equation(-20) === -Infinity
+
+  const points = plotLine(
+    isInfinity ? point1.x : -20,
+    isInfinity ? -20 : startPoint,
+    isInfinity ? point1.x : 20,
+    isInfinity ? 20 : endPoint
+  )
 
   return (
     <group>

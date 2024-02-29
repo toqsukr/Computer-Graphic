@@ -42,7 +42,7 @@ function App() {
   }
 
   useEffect(() => {
-    onClick()
+    setReflected(undefined)
   }, [startPoint, endPoint])
 
   return (
